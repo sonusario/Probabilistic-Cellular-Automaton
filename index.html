@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Custom Probabilistic Game of Life</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: #1e1e24;
+            color: #f4f4f9;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        h1 {
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+
+        .controls {
+            margin-bottom: 20px;
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
+        }
+
+        button {
+            background-color: #3a3a4a;
+            color: #fff;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background-color 0.2s;
+        }
+
+        button:hover {
+            background-color: #52526a;
+        }
+
+        button#startStop.running {
+            background-color: #e63946;
+        }
+
+        button#startStop.running:hover {
+            background-color: #ff4d5a;
+        }
+
+        .prob-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-bottom: 20px;
+            background: #2a2a35;
+            padding: 15px;
+            border-radius: 8px;
+        }
+
+        .prob-input {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            font-size: 0.85rem;
+            color: #ccc;
+        }
+
+        .prob-input input {
+            width: 60px;
+            margin-top: 5px;
+            background: #1a1a24;
+            border: 1px solid #3a3a4a;
+            color: #fff;
+            padding: 4px;
+            border-radius: 4px;
+            text-align: center;
+        }
+
+        canvas {
+            border: 1px solid #3a3a4a;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+            border-radius: 4px;
+            cursor: crosshair;
+            background-color: #111;
+        }
+
+        .info {
+            margin-top: 15px;
+            color: #aaa;
+            font-size: 0.9rem;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Custom dev Probabilistic Game of Life</h1>
+    
+    <div class="controls">
+        <button id="startStop">Start</button>
+        <button id="step">Step</button>
+        <button id="random">Randomize</button>
+        <button id="clear">Clear</button>
+    </div>
+
+    <div class="prob-grid">
+        <div class="prob-input"><label for="p0">0 Neighbors (%)</label><input type="number" id="p0" min="0" max="100" value="0"></div>
+        <div class="prob-input"><label for="p1">1 Neighbor (%)</label><input type="number" id="p1" min="0" max="100" value="0"></div>
+        <div class="prob-input"><label for="p2">2 Neighbors (%)</label><input type="number" id="p2" min="0" max="100" value="100"></div>
+        <div class="prob-input"><label for="p3">3 Neighbors (%)</label><input type="number" id="p3" min="0" max="100" value="100"></div>
+        <div class="prob-input"><label for="p4">4 Neighbors (%)</label><input type="number" id="p4" min="0" max="100" value="0"></div>
+        <div class="prob-input"><label for="p5">5 Neighbors (%)</label><input type="number" id="p5" min="0" max="100" value="0"></div>
+        <div class="prob-input"><label for="p6">6 Neighbors (%)</label><input type="number" id="p6" min="0" max="100" value="0"></div>
+        <div class="prob-input"><label for="p7">7 Neighbors (%)</label><input type="number" id="p7" min="0" max="100" value="0"></div>
+        <div class="prob-input"><label for="p8">8 Neighbors (%)</label><input type="number" id="p8" min="0" max="100" value="0"></div>
+    </div>
+
+    <canvas id="lifeCanvas"></canvas>
+
+    <div class="info">
+        Click and drag on the grid to toggle cells. Adjust the survival percentages for each neighbor count.
+    </div>
+
+    <script>
+        const canvas = document.getElementById('lifeCanvas');
+        const ctx = canvas.getContext('2d');
+        const startStopBtn = document.getElementById('startStop');
+        const stepBtn = document.getElementById('step');
+        const randomBtn = document.getElementById('random');
+        const clearBtn = document.getElementById('clear');
+
+        const probInputs = [
+            document.getElementById('p0'),
+            document.getElementById('p1'),
+            document.getElementById('p2'),
+            document.getElementById('p3'),
+            document.getElementById('p4'),
+            document.getElementById('p5'),
+            document.getElementById('p6'),
+            document.getElementById('p7'),
+            document.getElementById('p8')
+        ];
+
+        const CELL_SIZE = 10;
+        const ROWS = 50;
+        const COLS = 70;
+        
+        canvas.width = COLS * CELL_SIZE;
+        canvas.height = ROWS * CELL_SIZE;
+
+        let grid = createGrid();
+        let isRunning = false;
+        let animationId = null;
+        let isDrawing = false;
+        let lastDrawnState = null;
+
+        function getProbabilities() {
+            return probInputs.map(input => parseFloat(input.value) / 100);
+        }
+
+        function createGrid() {
+            return Array(ROWS).fill(null).map(() => Array(COLS).fill(0));
+        }
+
+        function randomizeGrid() {
+            for (let r = 0; r < ROWS; r++) {
+                for (let c = 0; c < COLS; c++) {
+                    grid[r][c] = Math.random() > 0.7 ? 1 : 0;
+                }
+            }
+            draw();
+        }
+
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            for (let r = 0; r < ROWS; r++) {
+                for (let c = 0; c < COLS; c++) {
+                    if (grid[r][c] === 1) {
+                        ctx.fillStyle = '#b5179e'; 
+                        ctx.fillRect(c * CELL_SIZE, r * CELL_SIZE, CELL_SIZE - 1, CELL_SIZE - 1);
+                    } else {
+                        ctx.fillStyle = '#1a1a24';
+                        ctx.fillRect(c * CELL_SIZE, r * CELL_SIZE, CELL_SIZE - 1, CELL_SIZE - 1);
+                    }
+                }
+            }
+        }
+
+        function computeNextGeneration() {
+            const nextGrid = createGrid();
+            const probabilities = getProbabilities();
+
+            for (let r = 0; r < ROWS; r++) {
+                for (let c = 0; c < COLS; c++) {
+                    let neighbors = countNeighbors(r, c);
+                    let prob = probabilities[neighbors];
+
+                    if (grid[r][c] === 1) {
+                        // Using the probability table for all live cell states
+                        if (Math.random() < prob) {
+                            nextGrid[r][c] = 1;
+                        } else {
+                            nextGrid[r][c] = 0;
+                        }
+                    } else {
+                        // The user's rule implies reproduction or birth based on neighbor counts.
+                        // We apply the same probability map for dead cells becoming alive.
+                        if (Math.random() < prob) {
+                            nextGrid[r][c] = 1;
+                        } else {
+                            nextGrid[r][c] = 0;
+                        }
+                    }
+                }
+            }
+            grid = nextGrid;
+        }
+
+        function countNeighbors(row, col) {
+            let count = 0;
+            for (let i = -1; i < 2; i++) {
+                for (let j = -1; j < 2; j++) {
+                    if (i === 0 && j === 0) continue;
+                    let r = (row + i + ROWS) % ROWS;
+                    let c = (col + j + COLS) % COLS;
+                    count += grid[r][c];
+                }
+            }
+            return count;
+        }
+
+        function gameLoop() {
+            computeNextGeneration();
+            draw();
+            if (isRunning) {
+                setTimeout(() => {
+                    animationId = requestAnimationFrame(gameLoop);
+                }, 100);
+            }
+        }
+
+        function handleGridInteraction(e) {
+            const rect = canvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            
+            const c = Math.floor(x / CELL_SIZE);
+            const r = Math.floor(y / CELL_SIZE);
+
+            if (r >= 0 && r < ROWS && c >= 0 && c < COLS) {
+                if (lastDrawnState === null) {
+                    grid[r][c] = grid[r][c] === 1 ? 0 : 1;
+                    lastDrawnState = grid[r][c];
+                } else {
+                    grid[r][c] = lastDrawnState;
+                }
+                draw();
+            }
+        }
+
+        startStopBtn.addEventListener('click', () => {
+            isRunning = !isRunning;
+            if (isRunning) {
+                startStopBtn.textContent = 'Pause';
+                startStopBtn.classList.add('running');
+                gameLoop();
+            } else {
+                startStopBtn.textContent = 'Start';
+                startStopBtn.classList.remove('running');
+                cancelAnimationFrame(animationId);
+            }
+        });
+
+        stepBtn.addEventListener('click', () => {
+            if (!isRunning) {
+                computeNextGeneration();
+                draw();
+            }
+        });
+
+        randomBtn.addEventListener('click', () => {
+            randomizeGrid();
+        });
+
+        clearBtn.addEventListener('click', () => {
+            grid = createGrid();
+            draw();
+            if (isRunning) startStopBtn.click();
+        });
+
+        canvas.addEventListener('mousedown', (e) => {
+            isDrawing = true;
+            handleGridInteraction(e);
+        });
+
+        window.addEventListener('mouseup', () => {
+            isDrawing = false;
+            lastDrawnState = null;
+        });
+
+        canvas.addEventListener('mousemove', (e) => {
+            if (isDrawing) {
+                handleGridInteraction(e);
+            }
+        });
+
+        randomizeGrid();
+    </script>
+</body>
+</html>
