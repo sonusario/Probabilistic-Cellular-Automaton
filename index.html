@@ -1,890 +1,517 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
     <title>Probabilistic Cellular Automaton</title>
     <style>
         :root {
-            --bg: #1e1e24;
-            --panel: #2a2a35;
-            --panel-2: #23232d;
-            --text: #f4f4f9;
-            --muted: #b9b9c8;
-            --muted-2: #8d8da3;
-            --border: #3a3a4a;
-            --button: #3a3a4a;
-            --button-hover: #52526a;
-            --danger: #e63946;
-            --danger-hover: #ff4d5a;
-            --accent: #b5179e;
-            --dead-cell: #15151d;
-            --focus: #f1c40f;
+            color-scheme: dark;
+            --bg: #0f1217;
+            --panel: #171b22;
+            --soft: #141820;
+            --text: #f7f8fb;
+            --muted: #aeb8c6;
+            --border: #303947;
+            --track: #2a3340;
+            --btn: #26303d;
+            --btn2: #344254;
+            --orange: #FF9A00;
+            --blue: #2f83ff;
+            --dead: #15151d
         }
 
         * {
-            box-sizing: border-box;
+            box-sizing: border-box
         }
 
         body {
-            min-height: 100vh;
             margin: 0;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 18px;
+            padding: 16px;
+            min-height: 100vh;
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            background: radial-gradient(circle at top, #2a2a35 0, var(--bg) 42rem);
-            color: var(--text);
+            background: radial-gradient(circle at top, rgba(255, 154, 0, .08), transparent 28rem), linear-gradient(#111821, #0f1217 55%);
+            color: var(--text)
+        }
+
+        .app {
+            width: min(100%, 1280px);
+            margin: auto;
+            display: grid;
+            gap: 12px
         }
 
         header {
             text-align: center;
-            max-width: 900px;
+            display: grid;
+            gap: 4px
         }
 
         h1 {
-            margin: 0 0 6px;
-            font-size: clamp(1.8rem, 4vw, 2.6rem);
-            font-weight: 700;
-            letter-spacing: -0.03em;
+            margin: 0;
+            font-size: clamp(1.45rem, 1rem + 2vw, 2.25rem)
         }
 
         .subtitle {
             margin: 0;
             color: var(--muted);
-            line-height: 1.45;
+            font-size: .92rem
         }
 
-        .app {
-            width: min(100%, 980px);
-            display: grid;
-            gap: 16px;
-        }
-
-        .panel {
-            background: color-mix(in srgb, var(--panel) 94%, white 6%);
-            border: 1px solid var(--border);
+        .topbar,
+        .settings,
+        .rule-panel,
+        .stats {
+            background: rgba(23, 27, 34, .92);
+            border: 1px solid #242c38;
             border-radius: 12px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.22);
+            box-shadow: 0 10px 34px rgba(0, 0, 0, .24)
         }
 
-        .controls {
-            padding: 14px;
+        .topbar {
             display: flex;
             flex-wrap: wrap;
-            justify-content: center;
             align-items: center;
-            gap: 12px;
+            justify-content: center;
+            gap: 8px;
+            padding: 10px
         }
 
-        button,
-        select,
-        input {
-            font: inherit;
-        }
-
-        button {
-            min-height: 42px;
-            background-color: var(--button);
-            color: #fff;
-            border: 1px solid transparent;
-            padding: 10px 16px;
+        .btn,
+        select {
+            border: 1px solid var(--border);
+            background: var(--btn);
+            color: var(--text);
+            min-height: 36px;
             border-radius: 8px;
-            cursor: pointer;
+            padding: 8px 12px;
             font-weight: 700;
-            transition: background-color 0.18s, transform 0.08s, border-color 0.18s;
+            cursor: pointer
         }
 
-        button:hover {
-            background-color: var(--button-hover);
+        .btn:hover,
+        select:hover {
+            background: var(--btn2)
         }
 
-        button:active {
-            transform: translateY(1px);
+        #startStop.running {
+            background: #d86d00;
+            border-color: #ffab3d;
+            color: #101010
         }
 
-        button:focus-visible,
-        select:focus-visible,
-        input:focus-visible,
-        canvas:focus-visible {
-            outline: 3px solid var(--focus);
-            outline-offset: 2px;
+        .check {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            color: #d9e1ea;
+            font-size: .9rem;
+            min-height: 36px
         }
 
-        button#startStop.running {
-            background-color: var(--danger);
+        .check input {
+            accent-color: var(--orange)
         }
 
-        button#startStop.running:hover {
-            background-color: var(--danger-hover);
+        .settings {
+            display: grid;
+            gap: 10px;
+            grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+            padding: 10px
         }
 
-        .field-row {
-            display: flex;
+        .setting-row {
+            display: grid;
+            grid-template-columns: minmax(7.4rem, 1fr) minmax(90px, 1.2fr) 4.2rem;
             align-items: center;
             gap: 8px;
-            color: var(--muted);
+            color: #d9e1ea;
+            font-size: .88rem
         }
 
-        .field-row input[type="number"] {
-            width: 72px;
-            background: #1a1a24;
+        .setting-row label {
+            white-space: nowrap
+        }
+
+        .num,
+        .prob-num {
             border: 1px solid var(--border);
-            color: #fff;
-            padding: 8px;
-            border-radius: 8px;
-            text-align: center;
-        }
-
-        .field-row select {
-            max-width: 220px;
-            background: #1a1a24;
-            border: 1px solid var(--border);
-            color: #fff;
-            padding: 9px 10px;
-            border-radius: 8px;
-        }
-
-        .field-row input[type="checkbox"] {
-            inline-size: 18px;
-            block-size: 18px;
-            accent-color: var(--accent);
-        }
-
-        .rules-panel {
-            display: grid;
-            grid-template-columns: repeat(2, minmax(0, 1fr));
-            gap: 16px;
-            padding: 16px;
-        }
-
-        .prob-section {
-            background: var(--panel-2);
-            border: 1px solid var(--border);
-            border-radius: 10px;
-            padding: 14px;
-        }
-
-        .prob-section h2 {
-            margin: 0 0 6px;
-            font-size: 1.05rem;
-        }
-
-        .prob-section p {
-            margin: 0 0 12px;
-            color: var(--muted);
-            font-size: 0.9rem;
-            line-height: 1.35;
-        }
-
-        .prob-grid {
-            display: grid;
-            grid-template-columns: repeat(3, minmax(0, 1fr));
-            gap: 10px;
-        }
-
-        .prob-input {
-            display: grid;
-            gap: 5px;
-            justify-items: center;
-            color: var(--muted);
-            font-size: 0.84rem;
-        }
-
-        .prob-input label {
-            text-align: center;
-            line-height: 1.2;
-        }
-
-        .prob-input input[type="number"] {
-            width: min(100%, 82px);
-            background: #1a1a24;
-            border: 1px solid var(--border);
-            color: #fff;
-            padding: 7px 5px;
+            background: #11161d;
+            color: var(--text);
             border-radius: 7px;
-            text-align: center;
+            text-align: right;
+            font-variant-numeric: tabular-nums;
+            font-weight: 700
         }
 
-        .prob-input input[type="range"] {
+        .num {
             width: 100%;
-            max-width: 140px;
-            accent-color: var(--accent);
-            cursor: pointer;
+            padding: 6px 7px
+        }
+
+        .prob-num {
+            width: 3.05rem;
+            padding: 4px 5px;
+            font-size: .82rem
+        }
+
+        .main {
+            display: grid;
+            gap: 12px;
+            align-items: start;
+            grid-template-areas: "canvas" "survival" "birth"
         }
 
         .canvas-panel {
-            padding: 14px;
+            grid-area: canvas;
             display: grid;
-            place-items: center;
-            gap: 12px;
+            gap: 10px;
+            justify-items: center;
+            min-width: 0
         }
 
-        .canvas-wrap {
-            width: 100%;
+        .survival-panel {
+            grid-area: survival
+        }
+
+        .birth-panel {
+            grid-area: birth
+        }
+
+        .rule-panel {
+            padding: 10px
+        }
+
+        .panel-title {
+            display: flex;
+            align-items: baseline;
+            justify-content: space-between;
+            gap: 8px;
+            margin-bottom: 8px
+        }
+
+        .panel-title h2 {
+            margin: 0;
+            font-size: 1rem
+        }
+
+        .panel-title span {
+            color: var(--muted);
+            font-size: .72rem;
+            white-space: nowrap
+        }
+
+        .surv {
+            color: var(--orange)
+        }
+
+        .born {
+            color: #75adff
+        }
+
+        .rules {
             display: grid;
-            place-items: center;
-            overflow: auto;
+            gap: 4px
+        }
+
+        .rule-row {
+            display: grid;
+            grid-template-columns: 1.45rem minmax(72px, 1fr) 3.05rem;
+            align-items: center;
+            gap: 7px;
+            min-height: 28px
+        }
+
+        .nlabel {
+            text-align: right;
+            color: #d9e1ea;
+            font-size: .78rem;
+            font-weight: 700;
+            font-variant-numeric: tabular-nums
+        }
+
+        .nlabel:after {
+            content: "n";
+            color: var(--muted);
+            font-weight: 500;
+            margin-left: 1px
+        }
+
+        .rng,
+        .prob-rng {
+            --accent: var(--orange);
+            --fill: 0%;
+            width: 100%;
+            height: 22px;
+            margin: 0;
+            appearance: none;
+            background: transparent;
+            cursor: pointer
+        }
+
+        .rng.birth,
+        .prob-rng.birth {
+            --accent: var(--blue)
+        }
+
+        .rng::-webkit-slider-runnable-track,
+        .prob-rng::-webkit-slider-runnable-track {
+            height: 6px;
+            border-radius: 999px;
+            background: linear-gradient(90deg, var(--accent) 0 var(--fill), var(--track) var(--fill) 100%);
+            border: 1px solid rgba(255, 255, 255, .08)
+        }
+
+        .rng::-moz-range-track,
+        .prob-rng::-moz-range-track {
+            height: 6px;
+            border-radius: 999px;
+            background: linear-gradient(90deg, var(--accent) 0 var(--fill), var(--track) var(--fill) 100%);
+            border: 1px solid rgba(255, 255, 255, .08)
+        }
+
+        .rng::-webkit-slider-thumb,
+        .prob-rng::-webkit-slider-thumb {
+            appearance: none;
+            width: 16px;
+            height: 16px;
+            margin-top: -6px;
+            border-radius: 50%;
+            background: var(--accent);
+            border: 2px solid #f8fbff;
+            box-shadow: 0 1px 7px #0008
+        }
+
+        .rng::-moz-range-thumb,
+        .prob-rng::-moz-range-thumb {
+            width: 13px;
+            height: 13px;
+            border-radius: 50%;
+            background: var(--accent);
+            border: 2px solid #f8fbff;
+            box-shadow: 0 1px 7px #0008
         }
 
         canvas {
-            width: 700px;
-            max-width: 100%;
+            width: min(700px, 100%);
             height: auto;
-            display: block;
+            aspect-ratio: 7/5;
             border: 1px solid var(--border);
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
-            border-radius: 6px;
+            border-radius: 10px;
+            background: var(--dead);
+            box-shadow: 0 12px 38px rgba(0, 0, 0, .36);
             cursor: crosshair;
-            background-color: var(--dead-cell);
             touch-action: none;
+            image-rendering: pixelated
         }
 
         .stats {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-            gap: 10px;
+            width: min(700px, 100%);
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 1px;
+            overflow: hidden
+        }
+
+        .stat {
+            background: rgba(20, 24, 32, .95);
+            padding: 8px 10px;
+            display: grid;
+            gap: 2px
+        }
+
+        .stat span {
             color: var(--muted);
-            font-size: 0.95rem;
+            font-size: .72rem;
+            text-transform: uppercase;
+            letter-spacing: .06em
+        }
+
+        .stat output {
+            min-width: 10ch;
+            text-align: right;
+            justify-self: end;
+            font: 600 .96rem ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+            font-variant-numeric: tabular-nums
+        }
+
+        .summary {
+            width: min(700px, 100%);
+            color: var(--muted);
             text-align: center;
+            font-size: .84rem;
+            line-height: 1.35
         }
 
-        .stat-pill {
-            background: var(--panel-2);
-            border: 1px solid var(--border);
-            border-radius: 999px;
-            padding: 6px 10px;
-        }
-
-        .info {
-            color: var(--muted-2);
-            font-size: 0.9rem;
+        .help {
+            margin: 0;
+            color: var(--muted);
             text-align: center;
-            line-height: 1.45;
+            font-size: .82rem;
+            line-height: 1.4
         }
 
-        @media (max-width: 780px) {
+        @media(min-width:1060px) {
+            .main {
+                grid-template-columns: minmax(190px, 240px) minmax(560px, 700px) minmax(190px, 240px);
+                grid-template-areas: "survival canvas birth";
+                justify-content: center
+            }
+
+            .rule-panel {
+                position: sticky;
+                top: 12px
+            }
+
+            .rule-row {
+                grid-template-columns: 1.35rem minmax(82px, 1fr) 2.85rem;
+                gap: 6px
+            }
+
+            .prob-num {
+                width: 2.85rem;
+                padding-inline: 4px
+            }
+        }
+
+        @media(min-width:720px) and (max-width:1059px) {
+            .main {
+                grid-template-columns: 1fr 1fr;
+                grid-template-areas: "canvas canvas" "survival birth"
+            }
+        }
+
+        @media(max-width:560px) {
             body {
-                padding: 14px;
+                padding: 10px
             }
 
-            .rules-panel {
+            .settings {
+                grid-template-columns: 1fr
+            }
+
+            .setting-row {
                 grid-template-columns: 1fr;
+                gap: 5px
             }
 
-            .controls {
-                justify-content: stretch;
+            .num {
+                max-width: 6rem
             }
 
-            .controls > button,
-            .field-row {
-                flex: 1 1 auto;
-                justify-content: center;
+            .stats {
+                grid-template-columns: 1fr
+            }
+
+            .stat {
+                grid-template-columns: 1fr auto;
+                align-items: center
             }
         }
     </style>
 </head>
+
 <body>
-    <header>
-        <h1>Probabilistic Cellular Automaton</h1>
-        <p class="subtitle">
-            Separate survival and birth probabilities by neighbor count. Conway's Game of Life is the default: live cells survive at 2 or 3 neighbors, and dead cells are born at 3 neighbors.
-        </p>
-    </header>
-
     <main class="app">
-        <section class="panel controls" aria-label="Simulation controls">
-            <button id="startStop" type="button">Start</button>
-            <button id="step" type="button">Step</button>
-            <button id="random" type="button">Randomize</button>
-            <button id="clear" type="button">Clear</button>
-
-            <label class="field-row" for="preset">
-                Preset
-                <select id="preset">
-                    <option value="conway">Conway: B3 / S23</option>
-                    <option value="highlife">HighLife: B36 / S23</option>
-                    <option value="seeds">Seeds: B2 / S</option>
-                    <option value="daynight">Day &amp; Night: B3678 / S34678</option>
+        <header>
+            <h1>Probabilistic Cellular Automaton</h1>
+            <p class="subtitle">Separate survival and birth probability rules, visualized directly on the grid.</p>
+        </header>
+        <section class="topbar" aria-label="Simulation controls">
+            <button class="btn" id="startStop">Start</button><button class="btn" id="step">Step</button><button
+                class="btn" id="random">Randomize</button><button class="btn" id="clear">Clear</button>
+            <label class="check"><input id="wrap" type="checkbox" checked>Wrap edges</label>
+            <label class="check">Preset <select id="preset">
+                    <option value="conway">Conway B3/S23</option>
+                    <option value="highlife">HighLife B36/S23</option>
+                    <option value="seeds">Seeds B2/S</option>
+                    <option value="dayNight">Day &amp; Night B3678/S34678</option>
                     <option value="custom">Custom</option>
-                </select>
-            </label>
-
-            <label class="field-row" for="speed">
-                Speed
-                <input id="speed" type="number" min="1" max="60" step="1" value="10" aria-describedby="speedHint">
-                gen/sec
-            </label>
-
-            <label class="field-row" for="density">
-                Random density
-                <input id="density" type="number" min="0" max="100" step="1" value="30">
-                %
-            </label>
-
-            <label class="field-row" for="wrapEdges">
-                <input id="wrapEdges" type="checkbox" checked>
-                Wrap edges
-            </label>
+                </select></label>
         </section>
-
-        <section class="panel rules-panel" aria-label="Probability controls">
-            <section class="prob-section" aria-labelledby="survivalHeading">
-                <h2 id="survivalHeading">Survival probabilities</h2>
-                <p>Used when a cell is currently alive. The value is the chance it stays alive next generation.</p>
-                <div id="survivalGrid" class="prob-grid"></div>
-            </section>
-
-            <section class="prob-section" aria-labelledby="birthHeading">
-                <h2 id="birthHeading">Birth probabilities</h2>
-                <p>Used when a cell is currently dead. The value is the chance it becomes alive next generation.</p>
-                <div id="birthGrid" class="prob-grid"></div>
-            </section>
+        <section class="settings">
+            <div class="setting-row"><label for="speedR">Speed delay (ms)</label><input class="rng" id="speedR"
+                    type="range" min="16" max="1000" value="100"><input class="num" id="speedN" type="number" min="16"
+                    max="1000" value="100"></div>
+            <div class="setting-row"><label for="densityR">Random density (%)</label><input class="rng birth"
+                    id="densityR" type="range" min="0" max="100" value="30"><input class="num" id="densityN"
+                    type="number" min="0" max="100" value="30"></div>
+            <div class="setting-row"><label for="cellR">Cell size (px)</label><input class="rng" id="cellR" type="range"
+                    min="1" max="10" value="10"><input class="num" id="cellN" type="number" min="1" max="10" value="10">
+            </div>
         </section>
-
-        <section class="panel canvas-panel" aria-label="Cellular automaton grid">
-            <div class="canvas-wrap">
-                <canvas
-                    id="lifeCanvas"
-                    tabindex="0"
-                    role="img"
-                    aria-label="Interactive cellular automaton grid. Click or drag to paint cells."
-                ></canvas>
-            </div>
-
-            <div class="stats" aria-live="polite">
-                <span class="stat-pill">Generation: <strong id="generationCount">0</strong></span>
-                <span class="stat-pill">Live cells: <strong id="liveCount">0</strong></span>
-                <span class="stat-pill">Rules: <strong id="ruleSummary">B3 / S23</strong></span>
-            </div>
-
-            <p id="speedHint" class="info">
-                Click or drag on the grid to toggle cells. Keyboard shortcuts: Space = start/pause, S = step, R = randomize, C = clear.
-            </p>
+        <section class="main">
+            <aside class="rule-panel survival-panel">
+                <div class="panel-title">
+                    <h2 class="surv">Survival</h2><span>live → live</span>
+                </div>
+                <div class="rules" id="survivalRules"></div>
+            </aside>
+            <section class="canvas-panel"><canvas id="life" width="700" height="500"
+                    aria-label="Interactive cellular automaton grid"></canvas>
+                <div class="stats">
+                    <div class="stat"><span>Generation</span><output id="gen">0</output></div>
+                    <div class="stat"><span>Live cells</span><output id="live">0</output></div>
+                    <div class="stat"><span>Grid</span><output id="gridStat">70×50</output></div>
+                </div>
+                <div class="summary" id="summary"></div>
+                <p class="help">Click or drag to paint cells. Space toggles play/pause. S steps, R randomizes and
+                    starts, C clears.</p>
+            </section>
+            <aside class="rule-panel birth-panel">
+                <div class="panel-title">
+                    <h2 class="born">Birth</h2><span>dead → live</span>
+                </div>
+                <div class="rules" id="birthRules"></div>
+            </aside>
         </section>
     </main>
-
     <script>
-        const ROWS = 50;
-        const COLS = 70;
-        const CELL_SIZE = 10;
-        const LOGICAL_WIDTH = COLS * CELL_SIZE;
-        const LOGICAL_HEIGHT = ROWS * CELL_SIZE;
-
-        const ALIVE_COLOR = '#b5179e';
-        const DEAD_COLOR = '#15151d';
-        const GRID_GAP = 1;
-
-        const presets = {
-            conway: {
-                name: 'Conway: B3 / S23',
-                survival: [0, 0, 100, 100, 0, 0, 0, 0, 0],
-                birth:    [0, 0, 0,   100, 0, 0, 0, 0, 0]
-            },
-            highlife: {
-                name: 'HighLife: B36 / S23',
-                survival: [0, 0, 100, 100, 0, 0, 0,   0, 0],
-                birth:    [0, 0, 0,   100, 0, 0, 100, 0, 0]
-            },
-            seeds: {
-                name: 'Seeds: B2 / S',
-                survival: [0, 0, 0, 0, 0, 0, 0, 0, 0],
-                birth:    [0, 0, 100, 0, 0, 0, 0, 0, 0]
-            },
-            daynight: {
-                name: 'Day & Night: B3678 / S34678',
-                survival: [0, 0, 0, 100, 100, 0, 100, 100, 100],
-                birth:    [0, 0, 0, 100, 0,   0, 100, 100, 100]
-            },
-            custom: {
-                name: 'Custom',
-                survival: [0, 0, 100, 100, 0, 0, 0, 0, 0],
-                birth:    [0, 0, 0,   100, 0, 0, 0, 0, 0]
-            }
-        };
-
-        const canvas = document.getElementById('lifeCanvas');
-        const ctx = canvas.getContext('2d');
-
-        const startStopBtn = document.getElementById('startStop');
-        const stepBtn = document.getElementById('step');
-        const randomBtn = document.getElementById('random');
-        const clearBtn = document.getElementById('clear');
-        const presetSelect = document.getElementById('preset');
-        const speedInput = document.getElementById('speed');
-        const densityInput = document.getElementById('density');
-        const wrapEdgesInput = document.getElementById('wrapEdges');
-        const survivalGrid = document.getElementById('survivalGrid');
-        const birthGrid = document.getElementById('birthGrid');
-        const generationCount = document.getElementById('generationCount');
-        const liveCount = document.getElementById('liveCount');
-        const ruleSummary = document.getElementById('ruleSummary');
-
-        const survivalInputs = [];
-        const birthInputs = [];
-
-        let grid = createGrid();
-        let nextGrid = createGrid();
-        let isRunning = false;
-        let animationId = null;
-        let lastStepTimestamp = 0;
-        let generation = 0;
-        let dragPaintState = null;
-        let lastPaintedIndex = -1;
-
-        initializeProbabilityControls();
-        applyPreset('conway');
-        resizeCanvasForDevicePixelRatio();
-        randomizeGrid();
-        bindEvents();
-
-        function createGrid() {
-            return new Uint8Array(ROWS * COLS);
-        }
-
-        function initializeProbabilityControls() {
-            for (let neighbors = 0; neighbors <= 8; neighbors++) {
-                survivalInputs.push(createProbabilityInput({
-                    id: `survival-${neighbors}`,
-                    label: `${neighbors} neighbors`,
-                    parent: survivalGrid
-                }));
-
-                birthInputs.push(createProbabilityInput({
-                    id: `birth-${neighbors}`,
-                    label: `${neighbors} neighbors`,
-                    parent: birthGrid
-                }));
-            }
-        }
-
-        function createProbabilityInput({ id, label, parent }) {
-            const wrapper = document.createElement('div');
-            wrapper.className = 'prob-input';
-
-            const numberId = `${id}-number`;
-            const sliderId = `${id}-slider`;
-
-            const inputLabel = document.createElement('label');
-            inputLabel.setAttribute('for', numberId);
-            inputLabel.textContent = label;
-
-            const numberInput = document.createElement('input');
-            numberInput.type = 'number';
-            numberInput.id = numberId;
-            numberInput.min = '0';
-            numberInput.max = '100';
-            numberInput.step = '1';
-            numberInput.value = '0';
-            numberInput.inputMode = 'numeric';
-            numberInput.setAttribute('aria-label', `${label} probability percentage`);
-
-            const sliderInput = document.createElement('input');
-            sliderInput.type = 'range';
-            sliderInput.id = sliderId;
-            sliderInput.min = '0';
-            sliderInput.max = '100';
-            sliderInput.step = '1';
-            sliderInput.value = '0';
-            sliderInput.setAttribute('aria-label', `${label} probability slider`);
-
-            numberInput.addEventListener('input', () => {
-                syncProbabilityControlFromNumber({ numberInput, sliderInput, forceWriteBack: true });
-            });
-
-            numberInput.addEventListener('change', () => {
-                syncProbabilityControlFromNumber({ numberInput, sliderInput, forceWriteBack: true });
-            });
-
-            sliderInput.addEventListener('input', () => {
-                syncProbabilityControlFromSlider({ numberInput, sliderInput, forceWriteBack: true });
-            });
-
-            sliderInput.addEventListener('change', () => {
-                syncProbabilityControlFromSlider({ numberInput, sliderInput, forceWriteBack: true });
-            });
-
-            wrapper.append(inputLabel, numberInput, sliderInput);
-            parent.appendChild(wrapper);
-            return { numberInput, sliderInput };
-        }
-
-        function bindEvents() {
-            startStopBtn.addEventListener('click', toggleRunning);
-
-            stepBtn.addEventListener('click', () => {
-                if (!isRunning) {
-                    stepSimulation();
-                }
-            });
-
-            randomBtn.addEventListener('click', randomizeGrid);
-
-            clearBtn.addEventListener('click', () => {
-                stopSimulation();
-                grid.fill(0);
-                generation = 0;
-                draw();
-                updateStats();
-            });
-
-            presetSelect.addEventListener('change', () => {
-                applyPreset(presetSelect.value);
-            });
-
-            speedInput.addEventListener('change', () => {
-                clampNumberInput(speedInput, 1, 60, 10);
-            });
-
-            densityInput.addEventListener('change', () => {
-                clampNumberInput(densityInput, 0, 100, 30);
-            });
-
-            wrapEdgesInput.addEventListener('change', () => {
-                canvas.focus();
-            });
-
-            canvas.addEventListener('pointerdown', handlePointerDown);
-            canvas.addEventListener('pointermove', handlePointerMove);
-            canvas.addEventListener('pointerup', endPointerPaint);
-            canvas.addEventListener('pointercancel', endPointerPaint);
-            canvas.addEventListener('lostpointercapture', endPointerPaint);
-
-            window.addEventListener('resize', resizeCanvasForDevicePixelRatio);
-            window.addEventListener('keydown', handleKeyboardShortcuts);
-        }
-
-        function toggleRunning() {
-            if (isRunning) {
-                stopSimulation();
-            } else {
-                startSimulation();
-            }
-        }
-
-        function startSimulation() {
-            if (isRunning) return;
-
-            isRunning = true;
-            lastStepTimestamp = 0;
-            startStopBtn.textContent = 'Pause';
-            startStopBtn.classList.add('running');
-            animationId = requestAnimationFrame(gameLoop);
-        }
-
-        function stopSimulation() {
-            isRunning = false;
-            startStopBtn.textContent = 'Start';
-            startStopBtn.classList.remove('running');
-
-            if (animationId !== null) {
-                cancelAnimationFrame(animationId);
-                animationId = null;
-            }
-        }
-
-        function gameLoop(timestamp) {
-            if (!isRunning) return;
-
-            const generationsPerSecond = clampNumberInput(speedInput, 1, 60, 10, { writeBack: false });
-            const intervalMs = 1000 / generationsPerSecond;
-
-            if (lastStepTimestamp === 0 || timestamp - lastStepTimestamp >= intervalMs) {
-                stepSimulation();
-                lastStepTimestamp = timestamp;
-            }
-
-            animationId = requestAnimationFrame(gameLoop);
-        }
-
-        function stepSimulation() {
-            computeNextGeneration();
-            generation += 1;
-            draw();
-            updateStats();
-        }
-
-        function computeNextGeneration() {
-            const survival = getProbabilityArray(survivalInputs);
-            const birth = getProbabilityArray(birthInputs);
-            const wrapEdges = wrapEdgesInput.checked;
-
-            for (let r = 0; r < ROWS; r++) {
-                for (let c = 0; c < COLS; c++) {
-                    const index = toIndex(r, c);
-                    const neighbors = countNeighbors(r, c, wrapEdges);
-                    const alive = grid[index] === 1;
-                    const probability = alive ? survival[neighbors] : birth[neighbors];
-
-                    nextGrid[index] = Math.random() < probability ? 1 : 0;
-                }
-            }
-
-            const oldGrid = grid;
-            grid = nextGrid;
-            nextGrid = oldGrid;
-            nextGrid.fill(0);
-        }
-
-        function countNeighbors(row, col, wrapEdges) {
-            let count = 0;
-
-            for (let dr = -1; dr <= 1; dr++) {
-                for (let dc = -1; dc <= 1; dc++) {
-                    if (dr === 0 && dc === 0) continue;
-
-                    let r = row + dr;
-                    let c = col + dc;
-
-                    if (wrapEdges) {
-                        r = (r + ROWS) % ROWS;
-                        c = (c + COLS) % COLS;
-                    } else if (r < 0 || r >= ROWS || c < 0 || c >= COLS) {
-                        continue;
-                    }
-
-                    count += grid[toIndex(r, c)];
-                }
-            }
-
-            return count;
-        }
-
-        function randomizeGrid() {
-            const density = clampNumberInput(densityInput, 0, 100, 30) / 100;
-
-            stopSimulation();
-            generation = 0;
-
-            for (let index = 0; index < grid.length; index++) {
-                grid[index] = Math.random() < density ? 1 : 0;
-            }
-
-            draw();
-            updateStats();
-        }
-
-        function draw() {
-            ctx.fillStyle = DEAD_COLOR;
-            ctx.fillRect(0, 0, LOGICAL_WIDTH, LOGICAL_HEIGHT);
-
-            ctx.fillStyle = ALIVE_COLOR;
-            const rectSize = Math.max(1, CELL_SIZE - GRID_GAP);
-
-            for (let r = 0; r < ROWS; r++) {
-                for (let c = 0; c < COLS; c++) {
-                    if (grid[toIndex(r, c)] === 1) {
-                        ctx.fillRect(c * CELL_SIZE, r * CELL_SIZE, rectSize, rectSize);
-                    }
-                }
-            }
-        }
-
-        function updateStats() {
-            generationCount.textContent = String(generation);
-            liveCount.textContent = String(countLiveCells());
-            updateRuleSummary();
-        }
-
-        function countLiveCells() {
-            let count = 0;
-            for (const cell of grid) {
-                count += cell;
-            }
-            return count;
-        }
-
-        function applyPreset(presetKey) {
-            const preset = presets[presetKey] || presets.conway;
-
-            setProbabilityInputs(survivalInputs, preset.survival);
-            setProbabilityInputs(birthInputs, preset.birth);
-            updateRuleSummary();
-        }
-
-        function setProbabilityInputs(controls, values) {
-            controls.forEach((control, index) => {
-                setProbabilityControlValue(control, values[index] ?? 0);
-            });
-        }
-
-        function getProbabilityArray(controls) {
-            return controls.map(control => getProbabilityControlValue(control, { writeBack: false }) / 100);
-        }
-
-        function getProbabilityControlValue(control, options = {}) {
-            const value = clampProbabilityInput(control.numberInput, options);
-
-            if (options.writeBack !== false) {
-                control.sliderInput.value = String(value);
-            }
-
-            return value;
-        }
-
-        function setProbabilityControlValue(control, value) {
-            const clamped = clampRawProbability(value);
-            control.numberInput.value = String(clamped);
-            control.sliderInput.value = String(clamped);
-        }
-
-        function syncProbabilityControlFromNumber({ numberInput, sliderInput, forceWriteBack = false }) {
-            const value = clampProbabilityInput(numberInput, { writeBack: forceWriteBack });
-            sliderInput.value = String(value);
-            presetSelect.value = 'custom';
-            updateRuleSummary();
-        }
-
-        function syncProbabilityControlFromSlider({ numberInput, sliderInput, forceWriteBack = false }) {
-            const value = clampProbabilityInput(sliderInput, { writeBack: forceWriteBack });
-            numberInput.value = String(value);
-            presetSelect.value = 'custom';
-            updateRuleSummary();
-        }
-
-        function clampProbabilityInput(input, options = {}) {
-            return clampNumberInput(input, 0, 100, 0, options);
-        }
-
-        function clampRawProbability(value) {
-            const numeric = Number(value);
-            const safe = Number.isFinite(numeric) ? numeric : 0;
-            return Math.min(100, Math.max(0, safe));
-        }
-
-        function clampNumberInput(input, min, max, fallback, options = {}) {
-            const writeBack = options.writeBack !== false;
-            const raw = Number(input.value);
-            const safe = Number.isFinite(raw) ? raw : fallback;
-            const clamped = Math.min(max, Math.max(min, safe));
-
-            if (writeBack) {
-                input.value = String(clamped);
-            }
-
-            return clamped;
-        }
-
-        function updateRuleSummary() {
-            const survivalValues = survivalInputs.map(control => getProbabilityControlValue(control, { writeBack: false }));
-            const birthValues = birthInputs.map(control => getProbabilityControlValue(control, { writeBack: false }));
-
-            ruleSummary.textContent = `${formatRulePart('B', birthValues)} / ${formatRulePart('S', survivalValues)}`;
-        }
-
-        function formatRulePart(prefix, values) {
-            const deterministicNeighbors = [];
-            const probabilisticParts = [];
-
-            values.forEach((value, neighbors) => {
-                if (value === 100) {
-                    deterministicNeighbors.push(neighbors);
-                } else if (value > 0) {
-                    probabilisticParts.push(`${neighbors}:${value}%`);
-                }
-            });
-
-            const deterministicPart = `${prefix}${deterministicNeighbors.join('')}`;
-            return probabilisticParts.length === 0
-                ? deterministicPart
-                : `${deterministicPart} (${probabilisticParts.join(', ')})`;
-        }
-
-        function handlePointerDown(event) {
-            event.preventDefault();
-            canvas.setPointerCapture(event.pointerId);
-            canvas.focus();
-
-            const cell = getCellFromPointerEvent(event);
-            if (!cell) return;
-
-            const index = toIndex(cell.row, cell.col);
-            dragPaintState = grid[index] === 1 ? 0 : 1;
-            paintCell(index, dragPaintState);
-        }
-
-        function handlePointerMove(event) {
-            if (dragPaintState === null) return;
-
-            event.preventDefault();
-            const cell = getCellFromPointerEvent(event);
-            if (!cell) return;
-
-            paintCell(toIndex(cell.row, cell.col), dragPaintState);
-        }
-
-        function endPointerPaint() {
-            dragPaintState = null;
-            lastPaintedIndex = -1;
-        }
-
-        function paintCell(index, state) {
-            if (index === lastPaintedIndex) return;
-
-            grid[index] = state;
-            lastPaintedIndex = index;
-            draw();
-            updateStats();
-        }
-
-        function getCellFromPointerEvent(event) {
-            const rect = canvas.getBoundingClientRect();
-            const x = (event.clientX - rect.left) * (LOGICAL_WIDTH / rect.width);
-            const y = (event.clientY - rect.top) * (LOGICAL_HEIGHT / rect.height);
-            const col = Math.floor(x / CELL_SIZE);
-            const row = Math.floor(y / CELL_SIZE);
-
-            if (row < 0 || row >= ROWS || col < 0 || col >= COLS) {
-                return null;
-            }
-
-            return { row, col };
-        }
-
-        function resizeCanvasForDevicePixelRatio() {
-            const dpr = window.devicePixelRatio || 1;
-
-            canvas.width = Math.round(LOGICAL_WIDTH * dpr);
-            canvas.height = Math.round(LOGICAL_HEIGHT * dpr);
-            canvas.style.width = `${LOGICAL_WIDTH}px`;
-            canvas.style.height = `${LOGICAL_HEIGHT}px`;
-
-            ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-            draw();
-        }
-
-        function handleKeyboardShortcuts(event) {
-            const activeElement = document.activeElement;
-            const isTyping = activeElement instanceof HTMLInputElement || activeElement instanceof HTMLSelectElement;
-
-            if (isTyping) return;
-
-            switch (event.code) {
-                case 'Space':
-                    event.preventDefault();
-                    toggleRunning();
-                    break;
-                case 'KeyS':
-                    event.preventDefault();
-                    if (!isRunning) stepSimulation();
-                    break;
-                case 'KeyR':
-                    event.preventDefault();
-                    randomizeGrid();
-                    break;
-                case 'KeyC':
-                    event.preventDefault();
-                    clearBtn.click();
-                    break;
-            }
-        }
-
-        function toIndex(row, col) {
-            return row * COLS + col;
-        }
+        'use strict';
+        const W = 700, H = 500, DEAD = '#15151d', ORANGE = '#FF9A00', BLUE_DARK = '#0E2E63', WHITE = '#ffffff';
+        const $ = id => document.getElementById(id), canvas = $('life'), ctx = canvas.getContext('2d', { alpha: false });
+        const startBtn = $('startStop'), stepBtn = $('step'), randBtn = $('random'), clearBtn = $('clear'), wrap = $('wrap'), preset = $('preset');
+        const genEl = $('gen'), liveEl = $('live'), gridEl = $('gridStat'), summary = $('summary');
+        const presets = { conway: { s: [0, 0, 100, 100, 0, 0, 0, 0, 0], b: [0, 0, 0, 100, 0, 0, 0, 0, 0] }, highlife: { s: [0, 0, 100, 100, 0, 0, 0, 0, 0], b: [0, 0, 0, 100, 0, 0, 100, 0, 0] }, seeds: { s: [0, 0, 0, 0, 0, 0, 0, 0, 0], b: [0, 0, 100, 0, 0, 0, 0, 0, 0] }, dayNight: { s: [0, 0, 0, 100, 100, 0, 100, 100, 100], b: [0, 0, 0, 100, 0, 0, 100, 100, 100] } };
+        const rule = { s: presets.conway.s.slice(), b: presets.conway.b.slice() }, ctrl = { s: [], b: [] };
+        let delay = 100, density = 30, cell = 10, rows = Math.ceil(H / cell), cols = Math.ceil(W / cell), grid = new Uint8Array(rows * cols), next = new Uint8Array(rows * cols), counts = new Uint8Array(rows * cols), countsDirty = true, gen = 0, live = 0, running = false, raf = null, last = 0, renderQueued = false, painting = false, paintValue = 1, lastPaint = -1;
+        const livePal = palette(ORANGE, WHITE), deadPal = palette(DEAD, BLUE_DARK);
+        function clamp(v, min, max) { v = Number(v); return Number.isFinite(v) ? Math.min(max, Math.max(min, Math.round(v))) : min }
+        function fmt(n) { return Number(n).toLocaleString('en-US') }
+        function rgb(hex) { hex = hex.replace('#', ''); return { r: parseInt(hex.slice(0, 2), 16), g: parseInt(hex.slice(2, 4), 16), b: parseInt(hex.slice(4, 6), 16) } }
+        function palette(a, b) { a = rgb(a); b = rgb(b); return Array.from({ length: 101 }, (_, i) => { let t = i / 100; return { r: Math.round(a.r + (b.r - a.r) * t), g: Math.round(a.g + (b.g - a.g) * t), b: Math.round(a.b + (b.b - a.b) * t) } }) }
+        function fillRange(input) { let min = Number(input.min || 0), max = Number(input.max || 100), v = clamp(input.value, min, max), p = max === min ? 0 : (v - min) / (max - min) * 100; input.style.setProperty('--fill', p + '%') }
+        function sync(num, rng, min, max, fn) { function commit(src) { let v = clamp(src.value, min, max); num.value = v; rng.value = v; fillRange(rng); fn(v) } num.addEventListener('input', () => commit(num)); num.addEventListener('change', () => commit(num)); rng.addEventListener('input', () => commit(rng)); rng.addEventListener('change', () => commit(rng)); commit(num) }
+        function buildRules(kind, el) { for (let n = 0; n < 9; n++) { let row = document.createElement('div'), lab = document.createElement('label'), rng = document.createElement('input'), num = document.createElement('input'); row.className = 'rule-row'; lab.className = 'nlabel'; lab.textContent = n; lab.htmlFor = `${kind}${n}n`; lab.title = n + ' neighbors'; rng.type = 'range'; rng.min = 0; rng.max = 100; rng.value = rule[kind][n]; rng.className = 'prob-rng ' + (kind === 'b' ? 'birth' : ''); rng.id = `${kind}${n}r`; rng.ariaLabel = (kind === 's' ? 'survival' : 'birth') + ` probability with ${n} neighbors`; num.type = 'number'; num.min = 0; num.max = 100; num.value = rule[kind][n]; num.className = 'prob-num'; num.id = `${kind}${n}n`; num.inputMode = 'numeric'; num.ariaLabel = rng.ariaLabel; row.append(lab, rng, num); el.append(row); ctrl[kind][n] = { num, rng }; sync(num, rng, 0, 100, v => { rule[kind][n] = v; preset.value = 'custom'; updateSummary(); queueRender() }) } }
+        function setRule(kind, n, v) { v = clamp(v, 0, 100); rule[kind][n] = v; ctrl[kind][n].num.value = v; ctrl[kind][n].rng.value = v; fillRange(ctrl[kind][n].rng) }
+        function applyPreset(name) { let p = presets[name]; if (!p) return; for (let n = 0; n < 9; n++) { setRule('s', n, p.s[n]); setRule('b', n, p.b[n]) } preset.value = name; updateSummary(); queueRender() }
+        function summaryPart(vals) { let yes = [], maybe = []; vals.forEach((v, i) => { if (v === 100) yes.push(i); else if (v > 0) maybe.push(`${i}:${v}%`) }); return yes.length || maybe.length ? [yes.join(''), maybe.join(', ')].filter(Boolean).join(' + ') : 'none' }
+        function updateSummary() { summary.innerHTML = `Rule: <span class="born">B ${summaryPart(rule.b)}</span> / <span class="surv">S ${summaryPart(rule.s)}</span>` }
+        function resizeGrid(newCell, resample = true) { let old = grid, or = rows, oc = cols; cell = clamp(newCell, 1, 10); rows = Math.ceil(H / cell); cols = Math.ceil(W / cell); let g = new Uint8Array(rows * cols); if (resample && old && or && oc) { for (let r = 0; r < rows; r++) { let rr = Math.min(or - 1, Math.floor(((r + .5) / rows) * or)), no = r * cols, oo = rr * oc; for (let c = 0; c < cols; c++) { let cc = Math.min(oc - 1, Math.floor(((c + .5) / cols) * oc)); g[no + c] = old[oo + cc] } } } grid = g; next = new Uint8Array(rows * cols); counts = new Uint8Array(rows * cols); countsDirty = true; updateStats(); queueRender() }
+        function updateStats() { genEl.value = fmt(gen); liveEl.value = fmt(live); gridEl.value = `${cols}×${rows}` }
+        function randomize() { live = 0; for (let i = 0; i < grid.length; i++) { let a = Math.random() * 100 < density ? 1 : 0; grid[i] = a; live += a } gen = 0; countsDirty = true; last = 0; render(); start() }
+        function clearGrid() { grid.fill(0); gen = 0; live = 0; countsDirty = true; stop(); render() }
+        function computeCounts() { if (!countsDirty) return; let w = wrap.checked; for (let r = 0; r < rows; r++) { let ro = r * cols, up = r === 0 ? (w ? rows - 1 : -1) : r - 1, dn = r === rows - 1 ? (w ? 0 : -1) : r + 1, uo = up >= 0 ? up * cols : -1, doff = dn >= 0 ? dn * cols : -1; for (let c = 0; c < cols; c++) { let l = c === 0 ? (w ? cols - 1 : -1) : c - 1, ri = c === cols - 1 ? (w ? 0 : -1) : c + 1, n = 0; if (uo >= 0) { if (l >= 0) n += grid[uo + l]; n += grid[uo + c]; if (ri >= 0) n += grid[uo + ri] } if (l >= 0) n += grid[ro + l]; if (ri >= 0) n += grid[ro + ri]; if (doff >= 0) { if (l >= 0) n += grid[doff + l]; n += grid[doff + c]; if (ri >= 0) n += grid[doff + ri] } counts[ro + c] = n } } countsDirty = false }
+        function step() { computeCounts(); let nl = 0; for (let i = 0; i < grid.length; i++) { let p = grid[i] ? rule.s[counts[i]] : rule.b[counts[i]], a = Math.random() * 100 < p ? 1 : 0; next[i] = a; nl += a } let tmp = grid; grid = next; next = tmp; live = nl; gen++; countsDirty = true }
+        function render() { renderQueued = false; computeCounts(); let img = ctx.createImageData(W, H), data = img.data, lc = 0; for (let r = 0; r < rows; r++) { let y0 = r * cell, y1 = Math.min(H, y0 + cell), ro = r * cols; for (let c = 0; c < cols; c++) { let x0 = c * cell, x1 = Math.min(W, x0 + cell), i = ro + c, alive = grid[i], p = alive ? rule.s[counts[i]] : rule.b[counts[i]], col = alive ? livePal[p] : deadPal[p]; lc += alive; for (let y = y0; y < y1; y++) { let px = (y * W + x0) * 4; for (let x = x0; x < x1; x++) { data[px] = col.r; data[px + 1] = col.g; data[px + 2] = col.b; data[px + 3] = 255; px += 4 } } } } live = lc; ctx.putImageData(img, 0, 0); updateStats() }
+        function queueRender() { if (renderQueued) return; renderQueued = true; requestAnimationFrame(render) }
+        function start() { if (running) return; running = true; last = 0; startBtn.textContent = 'Pause'; startBtn.classList.add('running'); raf = requestAnimationFrame(loop) }
+        function stop() { running = false; startBtn.textContent = 'Start'; startBtn.classList.remove('running'); if (raf !== null) { cancelAnimationFrame(raf); raf = null } }
+        function loop(t) { if (!running) return; if (last === 0 || t - last >= delay) { step(); render(); last = t } raf = requestAnimationFrame(loop) }
+        function pointerIndex(e) { let rect = canvas.getBoundingClientRect(), x = (e.clientX - rect.left) * (W / rect.width), y = (e.clientY - rect.top) * (H / rect.height), c = Math.floor(x / cell), r = Math.floor(y / cell); return r < 0 || r >= rows || c < 0 || c >= cols ? -1 : r * cols + c }
+        function paint(i) { if (i < 0 || i === lastPaint) return; lastPaint = i; if (grid[i] !== paintValue) { grid[i] = paintValue; countsDirty = true; queueRender() } }
+        startBtn.onclick = () => running ? stop() : start();
+        stepBtn.onclick = () => { stop(); step(); render() };
+        randBtn.onclick = randomize; clearBtn.onclick = clearGrid; wrap.onchange = () => { countsDirty = true; queueRender() }; preset.onchange = () => { if (preset.value !== 'custom') applyPreset(preset.value) };
+        canvas.addEventListener('pointerdown', e => { let i = pointerIndex(e); if (i < 0) return; e.preventDefault(); canvas.setPointerCapture(e.pointerId); painting = true; paintValue = grid[i] ? 0 : 1; lastPaint = -1; paint(i) });
+        canvas.addEventListener('pointermove', e => { if (!painting) return; e.preventDefault(); paint(pointerIndex(e)) });
+        function endPaint(e) { if (painting && canvas.hasPointerCapture(e.pointerId)) canvas.releasePointerCapture(e.pointerId); painting = false; lastPaint = -1 } canvas.addEventListener('pointerup', endPaint); canvas.addEventListener('pointercancel', endPaint);
+        window.addEventListener('keydown', e => { let t = document.activeElement && document.activeElement.tagName; if (['INPUT', 'SELECT', 'TEXTAREA'].includes(t)) return; if (e.code === 'Space') { e.preventDefault(); startBtn.click() } else if (e.key === 's' || e.key === 'S') stepBtn.click(); else if (e.key === 'r' || e.key === 'R') randBtn.click(); else if (e.key === 'c' || e.key === 'C') clearBtn.click() });
+        buildRules('s', $('survivalRules')); buildRules('b', $('birthRules'));
+        sync($('speedN'), $('speedR'), 16, 1000, v => delay = v); sync($('densityN'), $('densityR'), 0, 100, v => density = v); sync($('cellN'), $('cellR'), 1, 10, v => resizeGrid(v, true));
+        applyPreset('conway'); randomize(); stop();
     </script>
 </body>
+
 </html>
