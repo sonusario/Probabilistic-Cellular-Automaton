@@ -17,9 +17,9 @@
             --track: #2a3340;
             --btn: #26303d;
             --btn2: #344254;
-            --orange: #FF9A00;
-            --blue: #2f83ff;
-            --dead: #15151d
+            --death: #FF9A00;
+            --birth: #2f83ff;
+            --dead: #15151d;
         }
 
         * {
@@ -31,12 +31,12 @@
             padding: 16px;
             min-height: 100vh;
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            background: radial-gradient(circle at top, rgba(255, 154, 0, .08), transparent 28rem), linear-gradient(#111821, #0f1217 55%);
-            color: var(--text)
+            background: radial-gradient(circle at top, rgba(255, 154, 0, .07), transparent 28rem), linear-gradient(#111821, #0f1217 55%);
+            color: var(--text);
         }
 
         .app {
-            width: min(100%, 1280px);
+            width: min(100%, 1340px);
             margin: auto;
             display: grid;
             gap: 12px
@@ -101,6 +101,15 @@
             color: #101010
         }
 
+        #randomRule {
+            border-color: #ba7b1d;
+            background: #3b2d19
+        }
+
+        #randomRule:hover {
+            background: #4a3a20
+        }
+
         .check {
             display: inline-flex;
             align-items: center;
@@ -111,27 +120,27 @@
         }
 
         .check input {
-            accent-color: var(--orange)
+            accent-color: var(--death)
         }
 
         .settings {
             display: grid;
-            gap: 10px;
-            grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+            gap: 8px;
+            grid-template-columns: repeat(auto-fit, minmax(245px, 1fr));
             padding: 10px
         }
 
         .setting-row {
             display: grid;
-            grid-template-columns: minmax(7.4rem, 1fr) minmax(90px, 1.2fr) 4.2rem;
+            grid-template-columns: 8.6rem minmax(96px, 1fr) 4.1rem;
             align-items: center;
-            gap: 8px;
+            gap: 7px;
             color: #d9e1ea;
-            font-size: .88rem
+            font-size: .86rem
         }
 
         .setting-row label {
-            white-space: nowrap
+            line-height: 1.15
         }
 
         .num,
@@ -151,16 +160,44 @@
         }
 
         .prob-num {
-            width: 3.05rem;
-            padding: 4px 5px;
-            font-size: .82rem
+            width: 2.85rem;
+            padding: 4px 4px;
+            font-size: .8rem
+        }
+
+        .color-settings {
+            grid-column: 1/-1;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+            gap: 8px;
+            border-top: 1px solid rgba(255, 255, 255, .08);
+            padding-top: 8px
+        }
+
+        .color-row {
+            display: grid;
+            grid-template-columns: minmax(8.2rem, 1fr) 3.25rem;
+            align-items: center;
+            gap: 7px;
+            color: #d9e1ea;
+            font-size: .84rem
+        }
+
+        .color-row input {
+            width: 3.25rem;
+            height: 2rem;
+            padding: 0;
+            border: 1px solid var(--border);
+            border-radius: 7px;
+            background: #11161d;
+            cursor: pointer
         }
 
         .main {
             display: grid;
             gap: 12px;
             align-items: start;
-            grid-template-areas: "canvas" "survival" "birth"
+            grid-template-areas: "canvas" "birth" "death"
         }
 
         .canvas-panel {
@@ -171,16 +208,16 @@
             min-width: 0
         }
 
-        .survival-panel {
-            grid-area: survival
-        }
-
         .birth-panel {
             grid-area: birth
         }
 
+        .death-panel {
+            grid-area: death
+        }
+
         .rule-panel {
-            padding: 10px
+            padding: 9px
         }
 
         .panel-title {
@@ -188,7 +225,7 @@
             align-items: baseline;
             justify-content: space-between;
             gap: 8px;
-            margin-bottom: 8px
+            margin-bottom: 6px
         }
 
         .panel-title h2 {
@@ -202,31 +239,31 @@
             white-space: nowrap
         }
 
-        .surv {
-            color: var(--orange)
+        .death {
+            color: var(--death)
         }
 
-        .born {
+        .birth {
             color: #75adff
         }
 
         .rules {
             display: grid;
-            gap: 4px
+            gap: 3px
         }
 
         .rule-row {
             display: grid;
-            grid-template-columns: 1.45rem minmax(72px, 1fr) 3.05rem;
+            grid-template-columns: 1.3rem minmax(68px, 1fr) 2.85rem;
             align-items: center;
-            gap: 7px;
-            min-height: 28px
+            gap: 6px;
+            min-height: 26px
         }
 
         .nlabel {
             text-align: right;
             color: #d9e1ea;
-            font-size: .78rem;
+            font-size: .77rem;
             font-weight: 700;
             font-variant-numeric: tabular-nums
         }
@@ -240,7 +277,7 @@
 
         .rng,
         .prob-rng {
-            --accent: var(--orange);
+            --accent: var(--death);
             --fill: 0%;
             width: 100%;
             height: 22px;
@@ -252,7 +289,7 @@
 
         .rng.birth,
         .prob-rng.birth {
-            --accent: var(--blue)
+            --accent: var(--birth)
         }
 
         .rng::-webkit-slider-runnable-track,
@@ -306,10 +343,14 @@
             image-rendering: pixelated
         }
 
+        canvas.panning {
+            cursor: grabbing
+        }
+
         .stats {
             width: min(700px, 100%);
             display: grid;
-            grid-template-columns: repeat(3, minmax(0, 1fr));
+            grid-template-columns: repeat(4, minmax(0, 1fr));
             gap: 1px;
             overflow: hidden
         }
@@ -318,22 +359,25 @@
             background: rgba(20, 24, 32, .95);
             padding: 8px 10px;
             display: grid;
-            gap: 2px
+            gap: 2px;
+            min-width: 0
         }
 
         .stat span {
             color: var(--muted);
             font-size: .72rem;
             text-transform: uppercase;
-            letter-spacing: .06em
+            letter-spacing: .06em;
+            white-space: nowrap
         }
 
         .stat output {
-            min-width: 10ch;
+            min-width: 8ch;
             text-align: right;
             justify-self: end;
             font: 600 .96rem ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-            font-variant-numeric: tabular-nums
+            font-variant-numeric: tabular-nums;
+            white-space: nowrap
         }
 
         .summary {
@@ -355,7 +399,7 @@
         @media(min-width:1060px) {
             .main {
                 grid-template-columns: minmax(190px, 240px) minmax(560px, 700px) minmax(190px, 240px);
-                grid-template-areas: "survival canvas birth";
+                grid-template-areas: "birth canvas death";
                 justify-content: center
             }
 
@@ -365,24 +409,24 @@
             }
 
             .rule-row {
-                grid-template-columns: 1.35rem minmax(82px, 1fr) 2.85rem;
-                gap: 6px
+                grid-template-columns: 1.25rem minmax(80px, 1fr) 2.7rem;
+                gap: 5px
             }
 
             .prob-num {
-                width: 2.85rem;
-                padding-inline: 4px
+                width: 2.7rem;
+                padding-inline: 3px
             }
         }
 
         @media(min-width:720px) and (max-width:1059px) {
             .main {
                 grid-template-columns: 1fr 1fr;
-                grid-template-areas: "canvas canvas" "survival birth"
+                grid-template-areas: "canvas canvas" "birth death"
             }
         }
 
-        @media(max-width:560px) {
+        @media(max-width:620px) {
             body {
                 padding: 10px
             }
@@ -392,12 +436,22 @@
             }
 
             .setting-row {
+                grid-template-columns: 7.8rem minmax(90px, 1fr) 4rem
+            }
+
+            .stats {
+                grid-template-columns: repeat(2, minmax(0, 1fr))
+            }
+        }
+
+        @media(max-width:420px) {
+            .setting-row {
                 grid-template-columns: 1fr;
                 gap: 5px
             }
 
             .num {
-                max-width: 6rem
+                max-width: 5rem
             }
 
             .stats {
@@ -416,11 +470,14 @@
     <main class="app">
         <header>
             <h1>Probabilistic Cellular Automaton</h1>
-            <p class="subtitle">Separate survival and birth probability rules, visualized directly on the grid.</p>
+            <p class="subtitle">Birth and death probability rules, visualized directly on the grid.</p>
         </header>
         <section class="topbar" aria-label="Simulation controls">
-            <button class="btn" id="startStop">Start</button><button class="btn" id="step">Step</button><button
-                class="btn" id="random">Randomize</button><button class="btn" id="clear">Clear</button>
+            <button class="btn" id="startStop">Start</button>
+            <button class="btn" id="step">Step</button>
+            <button class="btn" id="random">Randomize</button>
+            <button class="btn" id="clear">Clear</button>
+            <button class="btn" id="randomRule">Random Rule</button>
             <label class="check"><input id="wrap" type="checkbox" checked>Wrap edges</label>
             <label class="check">Preset <select id="preset">
                     <option value="conway">Conway B3/S23</option>
@@ -440,13 +497,29 @@
             <div class="setting-row"><label for="cellR">Cell size (px)</label><input class="rng" id="cellR" type="range"
                     min="1" max="10" value="10"><input class="num" id="cellN" type="number" min="1" max="10" value="10">
             </div>
+            <div class="setting-row"><label for="skipN">Frames to skip</label><input class="rng birth" id="skipR"
+                    type="range" min="0" max="120" value="0"><input class="num" id="skipN" type="number" min="0"
+                    max="120" value="0"></div>
+            <div class="setting-row"><label for="brushR">Draw block size</label><input class="rng" id="brushR"
+                    type="range" min="1" max="31" value="1"><input class="num" id="brushN" type="number" min="1"
+                    max="31" value="1"></div>
+            <div class="color-settings" aria-label="Cell gradient colors">
+                <label class="color-row" for="liveLow">Live low death<input id="liveLow" type="color"
+                        value="#ffffff"></label>
+                <label class="color-row" for="liveHigh">Live high death<input id="liveHigh" type="color"
+                        value="#ff9a00"></label>
+                <label class="color-row" for="deadLow">Dead low birth<input id="deadLow" type="color"
+                        value="#15151d"></label>
+                <label class="color-row" for="deadHigh">Dead high birth<input id="deadHigh" type="color"
+                        value="#0e2e63"></label>
+            </div>
         </section>
         <section class="main">
-            <aside class="rule-panel survival-panel">
+            <aside class="rule-panel birth-panel">
                 <div class="panel-title">
-                    <h2 class="surv">Survival</h2><span>live → live</span>
+                    <h2 class="birth">Birth rate</h2><span>dead → live</span>
                 </div>
-                <div class="rules" id="survivalRules"></div>
+                <div class="rules" id="birthRules"></div>
             </aside>
             <section class="canvas-panel"><canvas id="life" width="700" height="500"
                     aria-label="Interactive cellular automaton grid"></canvas>
@@ -454,63 +527,92 @@
                     <div class="stat"><span>Generation</span><output id="gen">0</output></div>
                     <div class="stat"><span>Live cells</span><output id="live">0</output></div>
                     <div class="stat"><span>Grid</span><output id="gridStat">70×50</output></div>
+                    <div class="stat"><span>Zoom</span><output id="zoomStat">100%</output></div>
                 </div>
                 <div class="summary" id="summary"></div>
-                <p class="help">Click or drag to paint cells. Space toggles play/pause. S steps, R randomizes and
-                    starts, C clears.</p>
+                <p class="help">Left-click/drag to paint. Wheel zooms over the cursor. Middle-click/drag pans. Space
+                    toggles play/pause. S steps, R randomizes cells, C clears.</p>
             </section>
-            <aside class="rule-panel birth-panel">
+            <aside class="rule-panel death-panel">
                 <div class="panel-title">
-                    <h2 class="born">Birth</h2><span>dead → live</span>
+                    <h2 class="death">Death rate</h2><span>live → dead</span>
                 </div>
-                <div class="rules" id="birthRules"></div>
+                <div class="rules" id="deathRules"></div>
             </aside>
         </section>
     </main>
     <script>
         'use strict';
-        const W = 700, H = 500, DEAD = '#15151d', ORANGE = '#FF9A00', BLUE_DARK = '#0E2E63', WHITE = '#ffffff';
+        const W = 700, H = 500, DEFAULT_LIVE_LOW = '#ffffff', DEFAULT_LIVE_HIGH = '#ff9a00', DEFAULT_DEAD_LOW = '#15151d', DEFAULT_DEAD_HIGH = '#0e2e63';
         const $ = id => document.getElementById(id), canvas = $('life'), ctx = canvas.getContext('2d', { alpha: false });
-        const startBtn = $('startStop'), stepBtn = $('step'), randBtn = $('random'), clearBtn = $('clear'), wrap = $('wrap'), preset = $('preset');
-        const genEl = $('gen'), liveEl = $('live'), gridEl = $('gridStat'), summary = $('summary');
-        const presets = { conway: { s: [0, 0, 100, 100, 0, 0, 0, 0, 0], b: [0, 0, 0, 100, 0, 0, 0, 0, 0] }, highlife: { s: [0, 0, 100, 100, 0, 0, 0, 0, 0], b: [0, 0, 0, 100, 0, 0, 100, 0, 0] }, seeds: { s: [0, 0, 0, 0, 0, 0, 0, 0, 0], b: [0, 0, 100, 0, 0, 0, 0, 0, 0] }, dayNight: { s: [0, 0, 0, 100, 100, 0, 100, 100, 100], b: [0, 0, 0, 100, 0, 0, 100, 100, 100] } };
-        const rule = { s: presets.conway.s.slice(), b: presets.conway.b.slice() }, ctrl = { s: [], b: [] };
-        let delay = 100, density = 30, cell = 10, rows = Math.ceil(H / cell), cols = Math.ceil(W / cell), grid = new Uint8Array(rows * cols), next = new Uint8Array(rows * cols), counts = new Uint8Array(rows * cols), countsDirty = true, gen = 0, live = 0, running = false, raf = null, last = 0, renderQueued = false, painting = false, paintValue = 1, lastPaint = -1;
-        const livePal = palette(ORANGE, WHITE), deadPal = palette(DEAD, BLUE_DARK);
+        const world = document.createElement('canvas'), wctx = world.getContext('2d', { alpha: false });
+        world.width = W; world.height = H;
+        const startBtn = $('startStop'), stepBtn = $('step'), randBtn = $('random'), clearBtn = $('clear'), randomRuleBtn = $('randomRule'), wrap = $('wrap'), preset = $('preset');
+        const genEl = $('gen'), liveEl = $('live'), gridEl = $('gridStat'), zoomEl = $('zoomStat'), summary = $('summary');
+        const presets = {
+            conway: { d: [100, 100, 0, 0, 100, 100, 100, 100, 100], b: [0, 0, 0, 100, 0, 0, 0, 0, 0] },
+            highlife: { d: [100, 100, 0, 0, 100, 100, 100, 100, 100], b: [0, 0, 0, 100, 0, 0, 100, 0, 0] },
+            seeds: { d: [100, 100, 100, 100, 100, 100, 100, 100, 100], b: [0, 0, 100, 0, 0, 0, 0, 0, 0] },
+            dayNight: { d: [100, 100, 100, 0, 0, 100, 0, 0, 0], b: [0, 0, 0, 100, 0, 0, 100, 100, 100] }
+        };
+        const rule = { d: presets.conway.d.slice(), b: presets.conway.b.slice() }, ctrl = { d: [], b: [] };
+        let delay = 100, density = 30, frameSkip = 0, brushSize = 1, cell = 10, rows = Math.ceil(H / cell), cols = Math.ceil(W / cell);
+        let grid = new Uint8Array(rows * cols), next = new Uint8Array(rows * cols), counts = new Uint8Array(rows * cols), countsDirty = true;
+        let gen = 0, live = 0, running = false, raf = null, last = 0, renderQueued = false;
+        let painting = false, panning = false, paintValue = 1, lastPaint = -1, panLast = null;
+        let viewScale = 1, viewX = 0, viewY = 0;
+        let liveLow = DEFAULT_LIVE_LOW, liveHigh = DEFAULT_LIVE_HIGH, deadLow = DEFAULT_DEAD_LOW, deadHigh = DEFAULT_DEAD_HIGH;
+        let livePal = palette(liveLow, liveHigh), deadPal = palette(deadLow, deadHigh);
         function clamp(v, min, max) { v = Number(v); return Number.isFinite(v) ? Math.min(max, Math.max(min, Math.round(v))) : min }
+        function clampF(v, min, max) { v = Number(v); return Number.isFinite(v) ? Math.min(max, Math.max(min, v)) : min }
         function fmt(n) { return Number(n).toLocaleString('en-US') }
-        function rgb(hex) { hex = hex.replace('#', ''); return { r: parseInt(hex.slice(0, 2), 16), g: parseInt(hex.slice(2, 4), 16), b: parseInt(hex.slice(4, 6), 16) } }
+        function rgb(hex) { hex = String(hex || '#000000').replace('#', ''); return { r: parseInt(hex.slice(0, 2), 16) || 0, g: parseInt(hex.slice(2, 4), 16) || 0, b: parseInt(hex.slice(4, 6), 16) || 0 } }
         function palette(a, b) { a = rgb(a); b = rgb(b); return Array.from({ length: 101 }, (_, i) => { let t = i / 100; return { r: Math.round(a.r + (b.r - a.r) * t), g: Math.round(a.g + (b.g - a.g) * t), b: Math.round(a.b + (b.b - a.b) * t) } }) }
+        function rebuildPalettes() { livePal = palette(liveLow, liveHigh); deadPal = palette(deadLow, deadHigh); queueRender() }
         function fillRange(input) { let min = Number(input.min || 0), max = Number(input.max || 100), v = clamp(input.value, min, max), p = max === min ? 0 : (v - min) / (max - min) * 100; input.style.setProperty('--fill', p + '%') }
         function sync(num, rng, min, max, fn) { function commit(src) { let v = clamp(src.value, min, max); num.value = v; rng.value = v; fillRange(rng); fn(v) } num.addEventListener('input', () => commit(num)); num.addEventListener('change', () => commit(num)); rng.addEventListener('input', () => commit(rng)); rng.addEventListener('change', () => commit(rng)); commit(num) }
-        function buildRules(kind, el) { for (let n = 0; n < 9; n++) { let row = document.createElement('div'), lab = document.createElement('label'), rng = document.createElement('input'), num = document.createElement('input'); row.className = 'rule-row'; lab.className = 'nlabel'; lab.textContent = n; lab.htmlFor = `${kind}${n}n`; lab.title = n + ' neighbors'; rng.type = 'range'; rng.min = 0; rng.max = 100; rng.value = rule[kind][n]; rng.className = 'prob-rng ' + (kind === 'b' ? 'birth' : ''); rng.id = `${kind}${n}r`; rng.ariaLabel = (kind === 's' ? 'survival' : 'birth') + ` probability with ${n} neighbors`; num.type = 'number'; num.min = 0; num.max = 100; num.value = rule[kind][n]; num.className = 'prob-num'; num.id = `${kind}${n}n`; num.inputMode = 'numeric'; num.ariaLabel = rng.ariaLabel; row.append(lab, rng, num); el.append(row); ctrl[kind][n] = { num, rng }; sync(num, rng, 0, 100, v => { rule[kind][n] = v; preset.value = 'custom'; updateSummary(); queueRender() }) } }
+        function buildRules(kind, el) { for (let n = 0; n < 9; n++) { let row = document.createElement('div'), lab = document.createElement('label'), rng = document.createElement('input'), num = document.createElement('input'); row.className = 'rule-row'; lab.className = 'nlabel'; lab.textContent = n; lab.htmlFor = `${kind}${n}n`; lab.title = n + ' neighbors'; rng.type = 'range'; rng.min = 0; rng.max = 100; rng.value = rule[kind][n]; rng.className = 'prob-rng ' + (kind === 'b' ? 'birth' : ''); rng.id = `${kind}${n}r`; rng.ariaLabel = (kind === 'd' ? 'death' : 'birth') + ` probability with ${n} neighbors`; num.type = 'number'; num.min = 0; num.max = 100; num.value = rule[kind][n]; num.className = 'prob-num'; num.id = `${kind}${n}n`; num.inputMode = 'numeric'; num.ariaLabel = rng.ariaLabel; row.append(lab, rng, num); el.append(row); ctrl[kind][n] = { num, rng }; sync(num, rng, 0, 100, v => { rule[kind][n] = v; preset.value = 'custom'; updateSummary(); queueRender() }) } }
         function setRule(kind, n, v) { v = clamp(v, 0, 100); rule[kind][n] = v; ctrl[kind][n].num.value = v; ctrl[kind][n].rng.value = v; fillRange(ctrl[kind][n].rng) }
-        function applyPreset(name) { let p = presets[name]; if (!p) return; for (let n = 0; n < 9; n++) { setRule('s', n, p.s[n]); setRule('b', n, p.b[n]) } preset.value = name; updateSummary(); queueRender() }
+        function applyPreset(name) { let p = presets[name]; if (!p) return; for (let n = 0; n < 9; n++) { setRule('d', n, p.d[n]); setRule('b', n, p.b[n]) } preset.value = name; updateSummary(); queueRender() }
+        function randomizeRules() { for (let n = 0; n < 9; n++) { setRule('d', n, Math.floor(Math.random() * 101)); setRule('b', n, Math.floor(Math.random() * 101)) } preset.value = 'custom'; updateSummary(); queueRender() }
         function summaryPart(vals) { let yes = [], maybe = []; vals.forEach((v, i) => { if (v === 100) yes.push(i); else if (v > 0) maybe.push(`${i}:${v}%`) }); return yes.length || maybe.length ? [yes.join(''), maybe.join(', ')].filter(Boolean).join(' + ') : 'none' }
-        function updateSummary() { summary.innerHTML = `Rule: <span class="born">B ${summaryPart(rule.b)}</span> / <span class="surv">S ${summaryPart(rule.s)}</span>` }
+        function updateSummary() { summary.innerHTML = `Rule: <span class="birth">Birth ${summaryPart(rule.b)}</span> / <span class="death">Death ${summaryPart(rule.d)}</span> <span title="Survival chance is calculated internally as 100 minus death chance.">(survival = 100 − death)</span>` }
+        function clampView() { if (viewScale <= 1) { viewScale = 1; viewX = 0; viewY = 0 } else { viewX = clampF(viewX, 0, W - W / viewScale); viewY = clampF(viewY, 0, H - H / viewScale) } zoomEl.value = Math.round(viewScale * 100) + '%' }
+        function drawView() { clampView(); ctx.imageSmoothingEnabled = false; ctx.clearRect(0, 0, W, H); ctx.drawImage(world, viewX, viewY, W / viewScale, H / viewScale, 0, 0, W, H) }
         function resizeGrid(newCell, resample = true) { let old = grid, or = rows, oc = cols; cell = clamp(newCell, 1, 10); rows = Math.ceil(H / cell); cols = Math.ceil(W / cell); let g = new Uint8Array(rows * cols); if (resample && old && or && oc) { for (let r = 0; r < rows; r++) { let rr = Math.min(or - 1, Math.floor(((r + .5) / rows) * or)), no = r * cols, oo = rr * oc; for (let c = 0; c < cols; c++) { let cc = Math.min(oc - 1, Math.floor(((c + .5) / cols) * oc)); g[no + c] = old[oo + cc] } } } grid = g; next = new Uint8Array(rows * cols); counts = new Uint8Array(rows * cols); countsDirty = true; updateStats(); queueRender() }
-        function updateStats() { genEl.value = fmt(gen); liveEl.value = fmt(live); gridEl.value = `${cols}×${rows}` }
-        function randomize() { live = 0; for (let i = 0; i < grid.length; i++) { let a = Math.random() * 100 < density ? 1 : 0; grid[i] = a; live += a } gen = 0; countsDirty = true; last = 0; render(); start() }
+        function updateStats() { genEl.value = fmt(gen).padStart(8, ' '); liveEl.value = fmt(live).padStart(8, ' '); gridEl.value = `${cols}×${rows}`; zoomEl.value = Math.round(viewScale * 100) + '%' }
+        function randomizeCells() { live = 0; for (let i = 0; i < grid.length; i++) { let a = Math.random() * 100 < density ? 1 : 0; grid[i] = a; live += a } gen = 0; countsDirty = true; last = 0; render() }
         function clearGrid() { grid.fill(0); gen = 0; live = 0; countsDirty = true; stop(); render() }
         function computeCounts() { if (!countsDirty) return; let w = wrap.checked; for (let r = 0; r < rows; r++) { let ro = r * cols, up = r === 0 ? (w ? rows - 1 : -1) : r - 1, dn = r === rows - 1 ? (w ? 0 : -1) : r + 1, uo = up >= 0 ? up * cols : -1, doff = dn >= 0 ? dn * cols : -1; for (let c = 0; c < cols; c++) { let l = c === 0 ? (w ? cols - 1 : -1) : c - 1, ri = c === cols - 1 ? (w ? 0 : -1) : c + 1, n = 0; if (uo >= 0) { if (l >= 0) n += grid[uo + l]; n += grid[uo + c]; if (ri >= 0) n += grid[uo + ri] } if (l >= 0) n += grid[ro + l]; if (ri >= 0) n += grid[ro + ri]; if (doff >= 0) { if (l >= 0) n += grid[doff + l]; n += grid[doff + c]; if (ri >= 0) n += grid[doff + ri] } counts[ro + c] = n } } countsDirty = false }
-        function step() { computeCounts(); let nl = 0; for (let i = 0; i < grid.length; i++) { let p = grid[i] ? rule.s[counts[i]] : rule.b[counts[i]], a = Math.random() * 100 < p ? 1 : 0; next[i] = a; nl += a } let tmp = grid; grid = next; next = tmp; live = nl; gen++; countsDirty = true }
-        function render() { renderQueued = false; computeCounts(); let img = ctx.createImageData(W, H), data = img.data, lc = 0; for (let r = 0; r < rows; r++) { let y0 = r * cell, y1 = Math.min(H, y0 + cell), ro = r * cols; for (let c = 0; c < cols; c++) { let x0 = c * cell, x1 = Math.min(W, x0 + cell), i = ro + c, alive = grid[i], p = alive ? rule.s[counts[i]] : rule.b[counts[i]], col = alive ? livePal[p] : deadPal[p]; lc += alive; for (let y = y0; y < y1; y++) { let px = (y * W + x0) * 4; for (let x = x0; x < x1; x++) { data[px] = col.r; data[px + 1] = col.g; data[px + 2] = col.b; data[px + 3] = 255; px += 4 } } } } live = lc; ctx.putImageData(img, 0, 0); updateStats() }
+        function step() { computeCounts(); let nl = 0; for (let i = 0; i < grid.length; i++) { let alive = grid[i], p = alive ? rule.d[counts[i]] : rule.b[counts[i]], a = alive ? (Math.random() * 100 >= p ? 1 : 0) : (Math.random() * 100 < p ? 1 : 0); next[i] = a; nl += a } let tmp = grid; grid = next; next = tmp; live = nl; gen++; countsDirty = true }
+        function render() { renderQueued = false; computeCounts(); let img = wctx.createImageData(W, H), data = img.data, lc = 0; for (let r = 0; r < rows; r++) { let y0 = r * cell, y1 = Math.min(H, y0 + cell), ro = r * cols; for (let c = 0; c < cols; c++) { let x0 = c * cell, x1 = Math.min(W, x0 + cell), i = ro + c, alive = grid[i], p = alive ? rule.d[counts[i]] : rule.b[counts[i]], col = alive ? livePal[p] : deadPal[p]; lc += alive; for (let y = y0; y < y1; y++) { let px = (y * W + x0) * 4; for (let x = x0; x < x1; x++) { data[px] = col.r; data[px + 1] = col.g; data[px + 2] = col.b; data[px + 3] = 255; px += 4 } } } } live = lc; wctx.putImageData(img, 0, 0); drawView(); updateStats() }
         function queueRender() { if (renderQueued) return; renderQueued = true; requestAnimationFrame(render) }
         function start() { if (running) return; running = true; last = 0; startBtn.textContent = 'Pause'; startBtn.classList.add('running'); raf = requestAnimationFrame(loop) }
         function stop() { running = false; startBtn.textContent = 'Start'; startBtn.classList.remove('running'); if (raf !== null) { cancelAnimationFrame(raf); raf = null } }
-        function loop(t) { if (!running) return; if (last === 0 || t - last >= delay) { step(); render(); last = t } raf = requestAnimationFrame(loop) }
-        function pointerIndex(e) { let rect = canvas.getBoundingClientRect(), x = (e.clientX - rect.left) * (W / rect.width), y = (e.clientY - rect.top) * (H / rect.height), c = Math.floor(x / cell), r = Math.floor(y / cell); return r < 0 || r >= rows || c < 0 || c >= cols ? -1 : r * cols + c }
-        function paint(i) { if (i < 0 || i === lastPaint) return; lastPaint = i; if (grid[i] !== paintValue) { grid[i] = paintValue; countsDirty = true; queueRender() } }
+        function loop(t) { if (!running) return; if (last === 0 || t - last >= delay) { let steps = frameSkip + 1; for (let i = 0; i < steps; i++)step(); render(); last = t } raf = requestAnimationFrame(loop) }
+        function screenPoint(e) { let rect = canvas.getBoundingClientRect(); return { x: (e.clientX - rect.left) * (W / rect.width), y: (e.clientY - rect.top) * (H / rect.height) } }
+        function screenToWorldPoint(p) { return { x: viewX + p.x / viewScale, y: viewY + p.y / viewScale } }
+        function pointerCell(e) { let p = screenToWorldPoint(screenPoint(e)), c = Math.floor(p.x / cell), r = Math.floor(p.y / cell); return r < 0 || r >= rows || c < 0 || c >= cols ? null : { r, c, i: r * cols + c } }
+        function paintBlock(pos) { if (!pos) return; let key = pos.r * cols + pos.c; if (key === lastPaint) return; lastPaint = key; let beforeChanged = false, half = Math.floor((brushSize - 1) / 2), startR = pos.r - half, startC = pos.c - half; for (let dr = 0; dr < brushSize; dr++) { let r = startR + dr; if (r < 0 || r >= rows) continue; for (let dc = 0; dc < brushSize; dc++) { let c = startC + dc; if (c < 0 || c >= cols) continue; let i = r * cols + c; if (grid[i] !== paintValue) { grid[i] = paintValue; beforeChanged = true } } } if (beforeChanged) { countsDirty = true; queueRender() } }
+        function handlePan(e) { let p = screenPoint(e), dx = p.x - panLast.x, dy = p.y - panLast.y; panLast = p; viewX -= dx / viewScale; viewY -= dy / viewScale; drawView() }
         startBtn.onclick = () => running ? stop() : start();
         stepBtn.onclick = () => { stop(); step(); render() };
-        randBtn.onclick = randomize; clearBtn.onclick = clearGrid; wrap.onchange = () => { countsDirty = true; queueRender() }; preset.onchange = () => { if (preset.value !== 'custom') applyPreset(preset.value) };
-        canvas.addEventListener('pointerdown', e => { let i = pointerIndex(e); if (i < 0) return; e.preventDefault(); canvas.setPointerCapture(e.pointerId); painting = true; paintValue = grid[i] ? 0 : 1; lastPaint = -1; paint(i) });
-        canvas.addEventListener('pointermove', e => { if (!painting) return; e.preventDefault(); paint(pointerIndex(e)) });
-        function endPaint(e) { if (painting && canvas.hasPointerCapture(e.pointerId)) canvas.releasePointerCapture(e.pointerId); painting = false; lastPaint = -1 } canvas.addEventListener('pointerup', endPaint); canvas.addEventListener('pointercancel', endPaint);
+        randBtn.onclick = randomizeCells;
+        clearBtn.onclick = clearGrid;
+        randomRuleBtn.onclick = randomizeRules;
+        wrap.onchange = () => { countsDirty = true; queueRender() };
+        preset.onchange = () => { if (preset.value !== 'custom') applyPreset(preset.value) };
+        canvas.addEventListener('pointerdown', e => { if (e.button === 1) { e.preventDefault(); panning = true; panLast = screenPoint(e); canvas.classList.add('panning'); canvas.setPointerCapture(e.pointerId); return } if (e.button !== 0) return; let pos = pointerCell(e); if (!pos) return; e.preventDefault(); canvas.setPointerCapture(e.pointerId); painting = true; paintValue = grid[pos.i] ? 0 : 1; lastPaint = -1; paintBlock(pos) });
+        canvas.addEventListener('pointermove', e => { if (panning) { e.preventDefault(); handlePan(e); return } if (!painting) return; e.preventDefault(); paintBlock(pointerCell(e)) });
+        function endPointer(e) { if ((painting || panning) && canvas.hasPointerCapture(e.pointerId)) canvas.releasePointerCapture(e.pointerId); painting = false; panning = false; lastPaint = -1; panLast = null; canvas.classList.remove('panning') }
+        canvas.addEventListener('pointerup', endPointer); canvas.addEventListener('pointercancel', endPointer); canvas.addEventListener('auxclick', e => { if (e.button === 1) e.preventDefault() });
+        canvas.addEventListener('wheel', e => { e.preventDefault(); let p = screenPoint(e), before = screenToWorldPoint(p), factor = Math.exp(-e.deltaY * 0.0015); viewScale = clampF(viewScale * factor, 1, 40); viewX = before.x - p.x / viewScale; viewY = before.y - p.y / viewScale; drawView() }, { passive: false });
         window.addEventListener('keydown', e => { let t = document.activeElement && document.activeElement.tagName; if (['INPUT', 'SELECT', 'TEXTAREA'].includes(t)) return; if (e.code === 'Space') { e.preventDefault(); startBtn.click() } else if (e.key === 's' || e.key === 'S') stepBtn.click(); else if (e.key === 'r' || e.key === 'R') randBtn.click(); else if (e.key === 'c' || e.key === 'C') clearBtn.click() });
-        buildRules('s', $('survivalRules')); buildRules('b', $('birthRules'));
-        sync($('speedN'), $('speedR'), 16, 1000, v => delay = v); sync($('densityN'), $('densityR'), 0, 100, v => density = v); sync($('cellN'), $('cellR'), 1, 10, v => resizeGrid(v, true));
-        applyPreset('conway'); randomize(); stop();
+        function initColor(id, setter) { let el = $(id); el.addEventListener('input', () => { setter(el.value); rebuildPalettes() }); el.addEventListener('change', () => { setter(el.value); rebuildPalettes() }) }
+        buildRules('b', $('birthRules')); buildRules('d', $('deathRules'));
+        sync($('speedN'), $('speedR'), 16, 1000, v => delay = v); sync($('densityN'), $('densityR'), 0, 100, v => density = v); sync($('cellN'), $('cellR'), 1, 10, v => resizeGrid(v, true)); sync($('skipN'), $('skipR'), 0, 120, v => frameSkip = v); sync($('brushN'), $('brushR'), 1, 31, v => brushSize = v);
+        initColor('liveLow', v => liveLow = v); initColor('liveHigh', v => liveHigh = v); initColor('deadLow', v => deadLow = v); initColor('deadHigh', v => deadHigh = v);
+        applyPreset('conway'); randomizeCells(); stop();
     </script>
 </body>
 
